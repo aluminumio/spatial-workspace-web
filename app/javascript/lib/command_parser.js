@@ -1,25 +1,34 @@
 export class CommandParser {
   constructor() {
     this.commands = new Map([
-      ["email",  { aliases: ["mail", "inbox"], description: "Check or compose email" }],
-      ["read",   { aliases: ["check"],         description: "Read inbox messages" }],
-      ["send",   { aliases: ["reply"],         description: "Send a composed email" }],
-      ["ask",    { aliases: ["question", "q"], description: "Ask the assistant" }],
-      ["open",   { aliases: ["browse", "go"],  description: "Open a URL" }],
-      ["clear",  { aliases: ["reset"],         description: "Clear the workspace" }],
-      ["help",   { aliases: ["?", "commands"], description: "Show available commands" }],
+      ["email",  { aliases: ["mail", "inbox", "e-mail"], description: "Check or compose email" }],
+      ["read",   { aliases: ["check", "reed"],           description: "Read inbox messages" }],
+      ["send",   { aliases: ["reply", "sent"],           description: "Send a composed email" }],
+      ["ask",    { aliases: ["question", "q", "asked"],  description: "Ask the assistant" }],
+      ["open",   { aliases: ["browse", "go"],            description: "Open a URL" }],
+      ["clear",  { aliases: ["reset", "clean"],          description: "Clear the workspace" }],
+      ["help",   { aliases: ["?", "commands"],           description: "Show available commands" }],
     ])
   }
 
   parse(text) {
-    const trimmed = text.trim()
+    // Strip punctuation and normalize whitespace for STT output
+    const cleaned = text
+      .replace(/[.,!?;:'"]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
 
-    // Match /command or "slash command" spoken aloud
-    let match = trimmed.match(/^\/(\w+)\s*(.*)?$/i)
+    // 1. Exact /command at start
+    let match = cleaned.match(/^\/(\w+)\s*(.*)?$/i)
 
+    // 2. "slash <command>" anywhere in the text
     if (!match) {
-      // Try matching spoken "slash email" or "command email"
-      match = trimmed.match(/^(?:slash|command)\s+(\w+)\s*(.*)?$/i)
+      match = cleaned.match(/(?:^|\s)(?:slash|command)\s+(\w+)\s*(.*)?$/i)
+    }
+
+    // 3. "slash-command" or "slash.command" (STT sometimes joins or punctuates)
+    if (!match) {
+      match = cleaned.match(/(?:^|\s)slash[\s\-]+(\w+)\s*(.*)?$/i)
     }
 
     if (!match) return null
@@ -27,11 +36,10 @@ export class CommandParser {
     const rawCommand = match[1].toLowerCase()
     const args = (match[2] || "").trim()
 
-    // Resolve aliases
     const command = this.resolveAlias(rawCommand)
     if (!command) return null
 
-    return { command, args, raw: trimmed }
+    return { command, args, raw: text }
   }
 
   resolveAlias(name) {

@@ -14,8 +14,8 @@ class SttJob < ApplicationJob
       { type: "transcription", text: text, timestamp: Time.current.iso8601 }
     )
 
-    # Check for slash commands and auto-dispatch to Claude
-    if text.strip.start_with?("/")
+    # Check for slash commands (typed "/ask" or spoken "slash ask")
+    if text.strip =~ /\A\/\w+|(?:^|\s)(?:slash|command)\s+\w+/i
       ClaudeAssistantJob.perform_later(session_id, text.strip)
     end
   end
