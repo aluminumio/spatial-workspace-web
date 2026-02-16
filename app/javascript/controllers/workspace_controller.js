@@ -81,29 +81,40 @@ export default class extends Controller {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          channelCount: 1,
-          sampleRate: 16000
+          channelCount: 1
         }
       })
       this.mediaStream = stream
 
-      const audioCtx = new AudioContext({ sampleRate: 16000 })
+      // Use native sample rate, then downsample to 16kHz in the processor
+      const audioCtx = new AudioContext()
+      const nativeSR = audioCtx.sampleRate
+      console.log(`[audio] Native sample rate: ${nativeSR}`)
       const source = audioCtx.createMediaStreamSource(stream)
 
-      // Use ScriptProcessorNode for broad compatibility
       const processor = audioCtx.createScriptProcessor(4096, 1, 1)
       processor.onaudioprocess = (e) => {
         if (!this.micActive) return
 
         const float32 = e.inputBuffer.getChannelData(0)
-        const int16 = new Int16Array(float32.length)
-        for (let i = 0; i < float32.length; i++) {
-          const s = Math.max(-1, Math.min(1, float32[i]))
+
+        // Downsample to 16kHz
+        const ratio = nativeSR / 16000
+        const downLen = Math.floor(float32.length / ratio)
+        const int16 = new Int16Array(downLen)
+        for (let i = 0; i < downLen; i++) {
+          const srcIdx = Math.floor(i * ratio)
+          const s = Math.max(-1, Math.min(1, float32[srcIdx]))
           int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF
         }
 
-        // Send as base64 since ActionCable doesn't support raw binary
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(int16.buffer)))
+        // Encode to base64 without stack overflow
+        const bytes = new Uint8Array(int16.buffer)
+        let binary = ""
+        for (let i = 0; i < bytes.length; i++) {
+          binary += String.fromCharCode(bytes[i])
+        }
+        const base64 = btoa(binary)
         this.audioSubscription?.send({ audio: base64 })
       }
 

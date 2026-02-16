@@ -7,7 +7,7 @@ class AudioChannel < ApplicationCable::Channel
     @buffer.set_encoding(Encoding::BINARY)
     @chunk_bytes = SPATIAL_CONFIG[:audio_chunk_seconds].to_i * SAMPLE_RATE * BYTES_PER_SAMPLE
 
-    stream_for session_id
+    stream_for session_id.to_s
   end
 
   def unsubscribed
@@ -43,7 +43,7 @@ class AudioChannel < ApplicationCable::Channel
       audio_bytes = NoiseGate.process(audio_bytes, SAMPLE_RATE)
     end
 
-    SttJob.perform_later(session_id, Base64.strict_encode64(audio_bytes))
+    SttJob.perform_later(session_id.to_s, Base64.strict_encode64(audio_bytes))
   end
 
   def noise_suppression_server?

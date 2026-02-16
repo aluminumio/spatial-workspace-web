@@ -1,6 +1,6 @@
 class TranscriptionChannel < ApplicationCable::Channel
   def subscribed
-    stream_for session_id
+    stream_for session_id.to_s
   end
 
   def unsubscribed
@@ -11,6 +11,6 @@ class TranscriptionChannel < ApplicationCable::Channel
     text = data["text"]
     return unless text.present?
 
-    ClaudeAssistantJob.perform_later(session_id, text)
+    ClaudeAssistantJob.perform_later(session_id.to_s, text)
   end
 end
