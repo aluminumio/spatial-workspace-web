@@ -6,6 +6,7 @@
 /storage/*
 !/log/.keep
 !/tmp/.keep
+!/tmp/pids/.keep
 !/storage/.keep
 
 /public/assets
