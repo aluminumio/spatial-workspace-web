@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Spatial Workspace</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            spatial: {
+              bg: '#0a0a0a',
+              panel: '#111111',
+              border: '#1a1a1a',
+              green: '#00ff88',
+              'green-dim': '#00cc6a',
+              text: '#e0e0e0',
+              muted: '#666666'
+            }
+          },
+          fontSize: {
+            'ar': ['18px', '1.6'],
+            'ar-lg': ['22px', '1.5'],
+            'ar-xl': ['28px', '1.4'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * { -webkit-font-smoothing: antialiased; }
+    body { background: #0a0a0a; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px #00ff88; }
+      50% { opacity: 0.5; box-shadow: 0 0 16px #00ff88; }
+    }
+    .mic-active { animation: pulse-green 1.5s ease-in-out infinite; }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .transcript-line { animation: fade-in 0.3s ease-out; }
+
+    .panel { background: #111111; border: 1px solid #1a1a1a; border-radius: 8px; }
+    .shortcut-overlay {
+      backdrop-filter: blur(12px);
+      background: rgba(10, 10, 10, 0.9);
+    }
+  </style>
+
+  <%= csrf_meta_tags rescue nil %>
+  <%= action_cable_meta_tag rescue nil %>
+  <%= javascript_importmap_tags rescue nil %>
+</head>
+<body class="h-full overflow-hidden">
+  <%= yield %>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<div data-controller="workspace" class="h-screen flex flex-col">
+  <!-- Status Bar -->
+  <header class="flex items-center justify-between px-4 py-2 border-b border-spatial-border flex-shrink-0">
+    <div class="flex items-center gap-3">
+      <span class="text-spatial-green font-bold text-ar">SPATIAL</span>
+      <span class="text-spatial-muted text-sm" data-workspace-target="clock"></span>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <!-- Mic indicator -->
+      <button data-action="click->workspace#toggleMic" data-workspace-target="micButton"
+              class="flex items-center gap-2 px-3 py-1 rounded-full border border-spatial-border hover:border-spatial-green transition-colors">
+        <span data-workspace-target="micDot" class="w-2.5 h-2.5 rounded-full bg-spatial-muted"></span>
+        <span data-workspace-target="micLabel" class="text-sm text-spatial-muted">MIC OFF</span>
+      </button>
+
+      <!-- Mode toggle -->
+      <button data-action="click->workspace#toggleMode" data-workspace-target="modeButton"
+              class="text-sm text-spatial-muted hover:text-spatial-green transition-colors px-2 py-1 rounded border border-spatial-border">
+        PUSH-TO-TALK
+      </button>
+
+      <!-- Help -->
+      <button data-action="click->workspace#toggleHelp"
+              class="text-sm text-spatial-muted hover:text-spatial-green transition-colors">
+        ?
+      </button>
+    </div>
+  </header>
+
+  <!-- Three-panel layout -->
+  <main class="flex-1 flex gap-2 p-2 min-h-0">
+    <!-- Left Panel: Email/Inbox -->
+    <section class="panel flex-1 flex flex-col min-w-0" data-workspace-target="leftPanel">
+      <div class="px-4 py-3 border-b border-spatial-border flex items-center justify-between">
+        <h2 class="text-ar text-spatial-green font-semibold">Inbox</h2>
+        <span class="text-xs text-spatial-muted">0 messages</span>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4" data-workspace-target="emailList">
+        <div class="flex flex-col items-center justify-center h-full text-spatial-muted">
+          <svg class="w-12 h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <p class="text-sm">Email integration pending</p>
+          <p class="text-xs mt-1 opacity-50">Say "/email" to get started</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Center Panel: Active Content -->
+    <section class="panel flex-[2] flex flex-col min-w-0" data-workspace-target="centerPanel">
+      <div class="px-4 py-3 border-b border-spatial-border">
+        <h2 class="text-ar text-spatial-green font-semibold" data-workspace-target="centerTitle">Workspace</h2>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4" data-workspace-target="centerContent"
+           data-controller="transcription-display" data-transcription-display-target="container">
+        <div class="space-y-3" data-transcription-display-target="output">
+          <div class="text-spatial-muted text-ar leading-relaxed">
+            <p class="mb-4">Welcome to Spatial Workspace.</p>
+            <p class="mb-2">Voice commands:</p>
+            <ul class="space-y-1 ml-4">
+              <li><span class="text-spatial-green">/ask</span> &mdash; Ask the assistant a question</li>
+              <li><span class="text-spatial-green">/email</span> &mdash; Check or compose email</li>
+              <li><span class="text-spatial-green">/read</span> &mdash; Read inbox messages</li>
+              <li><span class="text-spatial-green">/send</span> &mdash; Send a composed email</li>
+            </ul>
+            <p class="mt-4 text-sm opacity-50">Hold <kbd class="px-1.5 py-0.5 bg-spatial-panel border border-spatial-border rounded text-xs">Space</kbd> to talk, or toggle continuous mode.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input bar -->
+      <div class="px-4 py-3 border-t border-spatial-border">
+        <form data-action="submit->workspace#sendText" class="flex gap-2">
+          <input type="text" data-workspace-target="textInput"
+                 class="flex-1 bg-spatial-panel border border-spatial-border rounded-lg px-4 py-2 text-ar text-spatial-text placeholder-spatial-muted focus:border-spatial-green focus:outline-none transition-colors"
+                 placeholder="Type a command or message..." autocomplete="off">
+          <button type="submit"
+                  class="px-4 py-2 bg-spatial-green text-black rounded-lg font-semibold text-sm hover:bg-spatial-green-dim transition-colors">
+            Send
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right Panel: Assistant -->
+    <section class="panel flex-1 flex flex-col min-w-0" data-workspace-target="rightPanel">
+      <div class="px-4 py-3 border-b border-spatial-border flex items-center justify-between">
+        <h2 class="text-ar text-spatial-green font-semibold">Assistant</h2>
+        <button data-action="click->workspace#clearAssistant"
+                class="text-xs text-spatial-muted hover:text-red-400 transition-colors">Clear</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4" data-workspace-target="assistantOutput">
+        <p class="text-spatial-muted text-sm">Ready. Speak or type to begin.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Keyboard shortcuts overlay -->
+  <div data-workspace-target="helpOverlay" class="hidden fixed inset-0 z-50 shortcut-overlay flex items-center justify-center">
+    <div class="panel p-8 max-w-lg w-full mx-4">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-ar-lg text-spatial-green font-bold">Keyboard Shortcuts</h3>
+        <button data-action="click->workspace#toggleHelp" class="text-spatial-muted hover:text-white text-xl">&times;</button>
+      </div>
+      <div class="space-y-3 text-ar">
+        <div class="flex justify-between"><span class="text-spatial-muted">Hold to talk</span><kbd class="text-spatial-green">Space</kbd></div>
+        <div class="flex justify-between"><span class="text-spatial-muted">Toggle mic mode</span><kbd class="text-spatial-green">M</kbd></div>
+        <div class="flex justify-between"><span class="text-spatial-muted">Focus text input</span><kbd class="text-spatial-green">/</kbd></div>
+        <div class="flex justify-between"><span class="text-spatial-muted">Clear assistant</span><kbd class="text-spatial-green">Ctrl+L</kbd></div>
+        <div class="flex justify-between"><span class="text-spatial-muted">Show shortcuts</span><kbd class="text-spatial-green">?</kbd></div>
+        <div class="flex justify-between"><span class="text-spatial-muted">Close overlay</span><kbd class="text-spatial-green">Esc</kbd></div>
+      </div>
+    </div>
+  </div>
+</div>

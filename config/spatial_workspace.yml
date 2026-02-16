@@ -1,0 +1,19 @@
+shared: &shared
+  stt_provider: whisper_api          # whisper_api | whisper_local | deepgram
+  stt_api_key: <%= ENV["STT_API_KEY"] || ENV["OPENAI_API_KEY"] %>
+  stt_endpoint: <%= ENV.fetch("STT_ENDPOINT", "https://api.openai.com/v1/audio/transcriptions") %>
+  claude_api_key: <%= ENV["ANTHROPIC_API_KEY"] %>
+  claude_model: <%= ENV.fetch("CLAUDE_MODEL", "claude-sonnet-4-5-20250514") %>
+  audio_chunk_seconds: <%= ENV.fetch("AUDIO_CHUNK_SECONDS", 3).to_i %>
+  noise_suppression: client          # client | server | both
+  whisper_model: whisper-1
+
+development:
+  <<: *shared
+
+test:
+  <<: *shared
+  stt_provider: whisper_api
+
+production:
+  <<: *shared
