@@ -16,6 +16,8 @@ Rails.application.configure do
     config.cache_store = :null_store
   end
 
+  config.active_job.queue_adapter = :async
+
   config.active_support.deprecation = :log
   config.active_support.disallowed_deprecation = :raise
   config.active_support.disallowed_deprecation_warnings = []

@@ -16,7 +16,6 @@ gem "rack-cors"
 
 # Audio & AI
 gem "ruby-openai", "~> 7.0"
-gem "anthropic", "~> 0.3"
 
 # Background jobs
 gem "solid_queue"

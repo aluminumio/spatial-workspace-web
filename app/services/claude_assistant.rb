@@ -1,7 +1,10 @@
 require "concurrent"
+require "net/http"
+require "json"
 
 class ClaudeAssistant
   SESSIONS = Concurrent::Map.new
+  API_URL = URI("https://api.anthropic.com/v1/messages").freeze
 
   SYSTEM_PROMPT = <<~PROMPT.freeze
     You are a spatial workspace assistant running on AR glasses (Rokid Max 2).
@@ -38,8 +41,8 @@ class ClaudeAssistant
       input_schema: {
         type: "object",
         properties: {
-          folder: { type: "string", description: "Mailbox folder", default: "inbox" },
-          count: { type: "integer", description: "Number of emails to fetch", default: 10 }
+          folder: { type: "string", description: "Mailbox folder" },
+          count: { type: "integer", description: "Number of emails to fetch" }
         }
       }
     },
@@ -62,42 +65,64 @@ class ClaudeAssistant
   end
 
   def chat(user_text, &on_stream)
-    @messages << { role: "user", content: user_text }
+    @messages << { "role" => "user", "content" => user_text }
 
-    client = Anthropic::Client.new(api_key: SPATIAL_CONFIG[:claude_api_key])
-
-    full_response = ""
-    tool_use_blocks = []
-
-    client.messages.create(
+    body = {
       model: SPATIAL_CONFIG[:claude_model],
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
-      messages: @messages,
+      messages: @messages.map { |m| { "role" => m["role"] || m[:role], "content" => m["content"] || m[:content] } },
       tools: TOOLS,
-      stream: proc { |event|
-        case event["type"]
-        when "content_block_delta"
-          delta = event.dig("delta")
-          if delta && delta["type"] == "text_delta"
-            text = delta["text"]
-            full_response << text
-            on_stream&.call(type: :text, text: text)
-          end
-        when "content_block_stop"
-          # block completed
-        when "message_delta"
-          if event.dig("delta", "stop_reason") == "tool_use"
-            # will handle tool results
+      stream: true
+    }
+
+    full_response = ""
+
+    http = Net::HTTP.new(API_URL.host, API_URL.port)
+    http.use_ssl = true
+    http.read_timeout = 60
+
+    request = Net::HTTP::Post.new(API_URL)
+    request["Content-Type"] = "application/json"
+    request["x-api-key"] = ENV["ANTHROPIC_API_KEY"]
+    request["anthropic-version"] = "2023-06-01"
+    request.body = body.to_json
+
+    http.request(request) do |response|
+      raise "Claude API error: #{response.code} #{response.body}" unless response.code.to_i == 200
+
+      buffer = ""
+      response.read_body do |chunk|
+        buffer << chunk
+
+        while (line_end = buffer.index("\n"))
+          line = buffer.slice!(0..line_end).strip
+          next if line.empty? || line.start_with?("event:")
+
+          if line.start_with?("data: ")
+            json_str = line.sub("data: ", "")
+            next if json_str == "[DONE]"
+
+            event = JSON.parse(json_str) rescue next
+
+            case event["type"]
+            when "content_block_delta"
+              delta = event.dig("delta")
+              if delta && delta["type"] == "text_delta"
+                text = delta["text"]
+                full_response << text
+                on_stream&.call(type: :text, text: text)
+              end
+            end
           end
         end
-      }
-    )
+      end
+    end
 
-    @messages << { role: "assistant", content: full_response }
+    @messages << { "role" => "assistant", "content" => full_response }
     save_messages
 
-    { text: full_response, tool_calls: tool_use_blocks }
+    { text: full_response }
   end
 
   def reset
@@ -109,13 +134,12 @@ class ClaudeAssistant
 
   def load_messages
     stored = redis&.get(redis_key)
-    stored ? JSON.parse(stored, symbolize_names: false).map(&:with_indifferent_access) : []
+    stored ? JSON.parse(stored) : []
   rescue
     []
   end
 
   def save_messages
-    # Keep last 50 messages to avoid unbounded growth
     @messages = @messages.last(50)
     redis&.set(redis_key, @messages.to_json, ex: 86_400)
   rescue => e

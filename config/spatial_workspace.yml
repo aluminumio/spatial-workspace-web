@@ -3,7 +3,7 @@ shared: &shared
   stt_api_key: <%= ENV["STT_API_KEY"] || ENV["OPENAI_API_KEY"] %>
   stt_endpoint: <%= ENV.fetch("STT_ENDPOINT", "https://api.openai.com/v1/audio/transcriptions") %>
   claude_api_key: <%= ENV["ANTHROPIC_API_KEY"] %>
-  claude_model: <%= ENV.fetch("CLAUDE_MODEL", "claude-sonnet-4-5-20250514") %>
+  claude_model: <%= ENV.fetch("CLAUDE_MODEL", "claude-3-5-sonnet-20241022") %>
   audio_chunk_seconds: <%= ENV.fetch("AUDIO_CHUNK_SECONDS", 3).to_i %>
   noise_suppression: client          # client | server | both
   whisper_model: whisper-1

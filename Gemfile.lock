@@ -77,10 +77,6 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.8)
       public_suffix (>= 2.0.2, < 8.0)
-    anthropic (0.4.1)
-      event_stream_parser (>= 0.3.0, < 2.0.0)
-      faraday (>= 1)
-      faraday-multipart (>= 1)
     base64 (0.3.0)
     bigdecimal (4.0.1)
     bindex (0.8.1)
@@ -353,7 +349,6 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
-  anthropic (~> 0.3)
   bootsnap
   capybara
   debug
