@@ -16,7 +16,6 @@ export default class extends Controller {
     this.micActive = false
     this.audioCapture = null
     this.commandParser = new CommandParser()
-    this.sessionId = crypto.randomUUID()
 
     this.setupCable()
     this.setupKeyboard()
@@ -237,25 +236,10 @@ export default class extends Controller {
     }
   }
 
-  async sendToAssistant(text) {
+  sendToAssistant(text) {
     this.appendAssistantMessage("...", "thinking")
-
-    try {
-      const response = await fetch("/api/command", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]')?.content || ""
-        },
-        body: JSON.stringify({ text, session_id: this.sessionId })
-      })
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      // Response comes back via ActionCable
-    } catch (err) {
-      this.removeThinking()
-      this.appendAssistantMessage(`Error: ${err.message}`)
-    }
+    // Route through ActionCable so session_id matches the subscription
+    this.transcriptionSubscription.send({ action: "send_command", text: text })
   }
 
   executeCommand(cmd) {
