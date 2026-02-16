@@ -6,3 +6,4 @@ pin "@rails/actioncable", to: "actioncable.esm.js"
 
 pin_all_from "app/javascript/controllers", under: "controllers"
 pin_all_from "app/javascript/lib", under: "lib"
+pin "marked" # @17.0.2

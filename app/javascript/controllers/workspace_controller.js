@@ -1,6 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 import { createConsumer } from "@rails/actioncable"
 import { CommandParser } from "lib/command_parser"
+import { marked } from "marked"
 
 export default class extends Controller {
   static targets = [
@@ -16,6 +17,7 @@ export default class extends Controller {
     this.micActive = false
     this.audioCapture = null
     this.commandParser = new CommandParser()
+    marked.setOptions({ breaks: true, gfm: true })
 
     this.setupCable()
     this.setupKeyboard()
@@ -293,8 +295,10 @@ export default class extends Controller {
   finalizeAssistant() {
     const streaming = this.assistantOutputTarget.querySelector(".assistant-streaming")
     if (streaming) {
+      const rawText = streaming.textContent
+      streaming.innerHTML = marked.parse(rawText)
       streaming.classList.remove("assistant-streaming")
-      streaming.classList.add("mb-4", "pb-4", "border-b", "border-spatial-border")
+      streaming.classList.add("assistant-message", "mb-4", "pb-4", "border-b", "border-spatial-border")
     }
   }
 
