@@ -12,6 +12,7 @@ gem "redis", ">= 5.0"
 gem "kredis"
 gem "jbuilder"
 gem "bootsnap", require: false
+gem "rack-cors"
 
 # Audio & AI
 gem "ruby-openai", "~> 7.0"
